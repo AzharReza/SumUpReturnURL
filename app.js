@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 async function createCheckout(retries = 3, delay = 1000) {
     const url = 'https://api.sumup.com/v0.1/checkouts';
     const body = {
-        checkout_reference: 'CO746453',
+        checkout_reference: 'CO74645345',
         amount: 10,
         currency: 'EUR',
         merchant_code: 'MBDQ4KSJ',
