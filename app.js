@@ -26,6 +26,7 @@ async function createCheckout() {
 
         // ✅ This is the payment URL
         console.log('Checkout created successfully:');
+        console.log('Checkout DATA:', data);
         console.log('Checkout URL:', data.checkout_url);
 
         return data;
