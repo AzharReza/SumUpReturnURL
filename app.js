@@ -1,8 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import dns from 'node:dns';
 
 dotenv.config();
+dns.setServers(['8.8.8.8', '8.8.4.4']); // Force Google DNS
 
 const app = express();
 const port = process.env.PORT || 3017;
@@ -12,36 +14,56 @@ const SUMUP_CLIENT_SECRET = process.env.SUMUP_CLIENT_SECRET;
 const SUMUP_MERCHANT_CODE = process.env.SUMUP_MERCHANT_CODE;
 const FRONT_URL = process.env.FRONT_URL;
 
+// Log environment variables for debugging
+console.log('Environment variables:', {
+    clientId: SUMUP_CLIENT_ID ? 'Loaded' : 'Missing',
+    clientSecret: SUMUP_CLIENT_SECRET ? 'Loaded' : 'Missing',
+    merchantCode: SUMUP_MERCHANT_CODE,
+    frontUrl: FRONT_URL,
+});
+
 // Helper: Get OAuth Access Token
 async function getAccessToken() {
-    const response = await fetch('https://api.sumup.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            grant_type: 'client_credentials',
-            client_id: SUMUP_CLIENT_ID,
-            client_secret: SUMUP_CLIENT_SECRET,
-        }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(JSON.stringify(data));
-    return data.access_token;
+    try {
+        console.log('Fetching access token with Client ID:', SUMUP_CLIENT_ID?.substring(0, 5) + '...');
+        const response = await fetch('https://api.sumup.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                grant_type: 'client_credentials',
+                client_id: SUMUP_CLIENT_ID,
+                client_secret: SUMUP_CLIENT_SECRET,
+            }),
+        });
+        const responseText = await response.text();
+        console.log('Token Response Status:', response.status);
+        console.log('Token Response Body:', responseText.substring(0, 500) + '...');
+
+        if (!response.ok) throw new Error(`Token fetch failed: ${responseText}`);
+        const data = JSON.parse(responseText);
+        return data.access_token;
+    } catch (error) {
+        console.error('Token Fetch Error:', error.message);
+        throw error;
+    }
 }
 
 // Route: Create Checkout
 app.get('/create-checkout', async (req, res) => {
     try {
-        const amount = parseFloat(req.query.amount) || 10.0; // default 10 EUR
+        const amount = parseInt((parseFloat(req.query.amount) || 10.0) * 100); // Convert to cents
         const token = await getAccessToken();
 
         const checkoutBody = {
             checkout_reference: 'checkout-' + Date.now(),
             amount,
             currency: 'EUR',
-            description: `Payment of €${amount}`,
+            description: `Payment of €${amount / 100}`,
             merchant_code: SUMUP_MERCHANT_CODE,
             return_url: `${FRONT_URL}/success`,
         };
+
+        console.log('Checkout Payload:', JSON.stringify(checkoutBody, null, 2));
 
         const response = await fetch('https://api.sumup.com/v0.1/checkouts', {
             method: 'POST',
@@ -52,15 +74,20 @@ app.get('/create-checkout', async (req, res) => {
             body: JSON.stringify(checkoutBody),
         });
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(JSON.stringify(data));
+        const responseText = await response.text();
+        console.log('Checkout Response Status:', response.status);
+        console.log('Checkout Response Body:', responseText.substring(0, 500) + '...');
 
+        if (!response.ok) throw new Error(`Checkout failed: ${responseText}`);
+
+        const data = JSON.parse(responseText);
         res.json({
             message: 'Checkout created',
             checkout_url: data.checkout_url,
             checkout_id: data.id,
         });
     } catch (error) {
+        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
@@ -79,9 +106,13 @@ app.get('/checkout-status/:id', async (req, res) => {
             },
         });
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(JSON.stringify(data));
+        const responseText = await response.text();
+        console.log('Status Response Status:', response.status);
+        console.log('Status Response Body:', responseText.substring(0, 500) + '...');
 
+        if (!response.ok) throw new Error(`Status fetch failed: ${responseText}`);
+
+        const data = JSON.parse(responseText);
         res.json({
             message: 'Checkout status retrieved',
             id: data.id,
@@ -89,6 +120,7 @@ app.get('/checkout-status/:id', async (req, res) => {
             transaction_code: data.transaction_code,
         });
     } catch (error) {
+        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
@@ -96,94 +128,3 @@ app.get('/checkout-status/:id', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import dotenv from 'dotenv';
-// import { SumUp } from '@sumup/sdk';
-//
-// dotenv.config();
-//
-// // Initialize SumUp with correct configuration
-// const sumup = new SumUp({
-//     credentials: {
-//         accessToken: process.env.SUMUP_API_KEY,
-//     },
-//     options: {
-//         sandbox: true, // This automatically uses sandbox URLs
-//     },
-// });
-//
-// async function createCheckout() {
-//     try {
-//         const checkout = await sumup.checkouts.create({
-//             checkout_reference: 'test-checkout-' + Date.now(),
-//             amount: 10.00, // Use decimal format for amounts
-//             currency: 'EUR',
-//             description: 'Test Payment for €10',
-//             merchant_code: process.env.SUMUP_MERCHANT_CODE,
-//             return_url: `${process.env.FRONT_URL}/success`,
-//         });
-//
-//         console.log('Checkout created successfully:', {
-//             id: checkout.id,
-//             reference: checkout.checkout_reference,
-//             amount: checkout.amount,
-//             status: checkout.status,
-//             checkout_url: checkout.checkout_url, // This is important for redirecting users
-//         });
-//
-//         return checkout;
-//     } catch (error) {
-//         console.error('Error creating checkout:', error.message);
-//         console.error('Full error details:', error);
-//         throw error;
-//     }
-// }
-//
-// async function getCheckoutStatus(checkoutId) {
-//     try {
-//         const checkout = await sumup.checkouts.retrieve(checkoutId);
-//         console.log('Checkout status:', {
-//             id: checkout.id,
-//             status: checkout.status,
-//             transaction_code: checkout.transaction_code,
-//         });
-//         return checkout;
-//     } catch (error) {
-//         console.error('Error retrieving checkout:', error.message);
-//         throw error;
-//     }
-// }
-//
-// async function runTest() {
-//     try {
-//         console.log('Creating checkout...');
-//         const checkout = await createCheckout();
-//
-//         console.log('\nCheckout created!');
-//         console.log('Redirect user to:', checkout.checkout_url);
-//         console.log('Or use the embedded checkout iframe');
-//
-//         // For testing, you can check the status after a delay
-//         console.log('\nWaiting 10 seconds before checking status...');
-//         await new Promise(resolve => setTimeout(resolve, 10000));
-//
-//         await getCheckoutStatus(checkout.id);
-//
-//     } catch (error) {
-//         console.error('Test failed:', error);
-//     }
-// }
-//
-// runTest();
