@@ -5,7 +5,7 @@ async function updateCheckout(checkoutId) {
         const url = `https://api.sumup.com/v0.1/checkouts/${checkoutId}`;
 
         const body = {
-            checkout_reference: 'CO746453451761047582736',
+            checkout_reference: 'CO746453451761048954993',
             amount: 10.1,
             currency: 'EUR',
             merchant_code: 'MDC6SX3K',
@@ -44,4 +44,4 @@ async function updateCheckout(checkoutId) {
 }
 
 // Example usage
-updateCheckout('ae679fa5-462b-42cb-9f38-7c68e7fb03e5');
+updateCheckout('69b54e0e-dc01-49c0-bd79-8e79c62cc80a');
