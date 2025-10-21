@@ -9,7 +9,7 @@ async function createCheckout() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                checkout_reference: 'CO74645345',
+                checkout_reference: 'CO74645345' + Date.now(),
                 amount: 10,
                 currency: 'EUR',
                 merchant_code: 'MBDQ4KSJ',
