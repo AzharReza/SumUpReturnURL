@@ -5,14 +5,16 @@ async function createCheckout() {
         const response = await fetch('https://api.sumup.com/v0.1/checkouts', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer sup_sk_22VrWyDuMwDQR8kO3p67r2iTAV4DETm6v',
+                'Authorization': 'Bearer sup_sk_qdnGVGuhF4yLIYNAdkSRcXluAmnIqLbK4',
+                // 'Authorization': 'Bearer sup_sk_22VrWyDuMwDQR8kO3p67r2iTAV4DETm6v',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 checkout_reference: 'CO74645345' + Date.now(),
                 amount: 10,
                 currency: 'EUR',
-                merchant_code: 'MBDQ4KSJ',
+                merchant_code: 'MDC6SX3K',
+                // merchant_code: 'MBDQ4KSJ',
                 description: 'Sample one-time payment',
                 return_url: 'https://yourdomain.com/thankyou', // Required for checkout_url
             }),

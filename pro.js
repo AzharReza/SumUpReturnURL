@@ -8,7 +8,8 @@ async function updateCheckout(checkoutId) {
             checkout_reference: 'CO746453451761047582736',
             amount: 10.1,
             currency: 'EUR',
-            merchant_code: 'MH4H92C7',
+            merchant_code: 'MDC6SX3K',
+            // merchant_code: 'MH4H92C7',
             description: 'Purchase',
             return_url: 'http://example.com',
             status: 'PENDING',
@@ -17,6 +18,7 @@ async function updateCheckout(checkoutId) {
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
+                // 'Authorization': 'Bearer sup_sk_22VrWyDuMwDQR8kO3p67r2iTAV4DETm6v',
                 'Authorization': 'Bearer sup_sk_qdnGVGuhF4yLIYNAdkSRcXluAmnIqLbK4',
                 'Content-Type': 'application/json',
             },
