@@ -17,7 +17,7 @@ async function updateCheckout(checkoutId) {
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
-                'Authorization': 'Bearer sup_sk_22VrWyDuMwDQR8kO3p67r2iTAV4DETm6v',
+                'Authorization': 'Bearer sup_sk_qdnGVGuhF4yLIYNAdkSRcXluAmnIqLbK4',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(body),
